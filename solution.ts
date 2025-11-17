@@ -24,17 +24,23 @@ class Person {
     this.age = age;
   }
   getDetails():string {
-    return `Name: ${this.name}, Age: ${this.age}`;
+    return (`'Name: ${this.name}, Age: ${this.age}'`);
   }
 }
 
 type WishList = {title:string, rating: number};
 const filterByRating = (values: WishList[]):WishList[] => {
-  return values.filter((item) => (
-    item.rating > 4
+  values.forEach((book) => {
+    const rating = book.rating >= 0 && book.rating <= 5;
+      if(!rating) {
+        throw new Error("Rating should be between 0 and 5");
+      }
+  });
+
+  return values.filter((book) => (
+    book.rating > 4
   ));
 }
-
 
 interface Users {
   id: number,
@@ -48,7 +54,6 @@ const filterActiveUsers = (values: Users[]):Users[] => {
   ));
 }
 
-
 interface Book {
   title: string;
   author: string;
@@ -59,11 +64,40 @@ const printBookDetails = (values: Book): string => {
   return `Title: ${values.title}, Author: ${values.author}, Published: ${values.publishedYear}, Available: ${values.isAvailable === true ? 'Yes' : 'No'}`
 }
 
-type ArrayType = string[] | number[];
-const getUniqueValues = (arr1: ArrayType, arr2: ArrayType): ArrayType => {
+const getUniqueValues = <T extends string | number>(arr1: T[], arr2: T[]): T[] => {
+  const uniqueValues: T[] = [];
 
+  for (let i = 0; i < arr1.length; i++) {
+    let found = false;
+    const currentVal = arr1[i];
+    if(currentVal === undefined) continue;
+    for (let j = 0; j < uniqueValues.length; j++) {
+     if(uniqueValues[j] === currentVal){
+      found = true;
+      break;
+     }
+    }   
+    if(!found) {
+      uniqueValues[uniqueValues.length] = currentVal;
+    }
+  };
+
+  for (let i = 0; i < arr2.length; i++) {
+    let found = false;
+    const currentVal = arr2[i];
+    if(currentVal === undefined) continue;
+    for (let j = 0; j < uniqueValues.length; j++) {
+     if(uniqueValues[j] === currentVal){
+      found = true;
+      break;
+     }
+    }   
+    if(!found) {
+      uniqueValues[uniqueValues.length] = currentVal;
+    }
+  }
+  return uniqueValues;
 }
-
 
 interface Product {
   name: string;
@@ -72,13 +106,20 @@ interface Product {
   discount?: number;
 }
 const calculateTotalPrice = (values: Product[]):number => {
+
+  values.forEach((product) => {
+    const discount = product.discount ?? 0;
+    if(discount < 0 || discount > 100) {
+      throw new Error("Discount should be between 0 and 100");
+    }
+  });
+
   if(values.length > 0) {
-    return values.reduce((total,item) => {  
-      const amount = item.price * item.quantity;
-      const discountAmount = item?.discount ? amount * item.discount / 100 : 0;
+    return values.reduce((total,product) => {  
+      const amount = product.price * product.quantity;
+      const discountAmount = product?.discount ? amount * product.discount / 100 : 0;
       const subTotal = amount - discountAmount;
-      total += subTotal;
-      return total;
+      return total + subTotal;
     },0)
   }else {
     return 0;
